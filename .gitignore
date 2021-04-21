@@ -1,7 +1,7 @@
 .vscode
 __pycache__
 .vscode-tags
-*.mod
-*.o
-*.ko
-*.txt
+**/*.mod
+**/*.o
+**/*.ko
+**/*.txt
