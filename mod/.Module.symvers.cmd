@@ -1,0 +1,1 @@
+cmd_/media/baptiste/hdd/Cours/CoursS2/psar/share/platform/mod/Module.symvers := sed 's/ko$$/o/' /media/baptiste/hdd/Cours/CoursS2/psar/share/platform/mod/modules.order | scripts/mod/modpost     -o /media/baptiste/hdd/Cours/CoursS2/psar/share/platform/mod/Module.symvers -e -i Module.symvers   -T -

@@ -1,0 +1,1 @@
+cmd_/media/baptiste/hdd/Cours/CoursS2/psar/share/platform/mod/helloWorld.mod := { echo  /media/baptiste/hdd/Cours/CoursS2/psar/share/platform/mod/helloWorld.o;  echo; } > /media/baptiste/hdd/Cours/CoursS2/psar/share/platform/mod/helloWorld.mod
