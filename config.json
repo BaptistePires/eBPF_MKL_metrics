@@ -1,0 +1,9 @@
+{
+    "bpf":{
+        "dir": "/media/baptiste/hdd/Cours/CoursS2/psar/share/platform/bpf",
+        "bpf_filename": "wrapper.o"
+    },
+    "module":{
+        "dir": "./mod"
+    }
+}

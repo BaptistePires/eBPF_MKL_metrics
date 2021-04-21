@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "bpf.h": "c",
+        "stdio.h": "c",
+        "bpf_common.h": "c"
+    }
+}

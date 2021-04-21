@@ -1,0 +1,26 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	//
+$(EXECABLE)	Makefile	/^$(EXECABLE): bpfload$/;"	t
+.DEFAULT_GOAL	Makefile	/^.DEFAULT_GOAL := $(EXECABLE)/;"	m
+BPFCODE	Makefile	/^BPFCODE = hello_world$/;"	m
+BPFLOADER	Makefile	/^BPFLOADER = $(BPFTOOLS)\/bpf_load.c$/;"	m
+BPFSO	Makefile	/^BPFSO = -lbpf$/;"	m
+BPFTOOLS	Makefile	/^BPFTOOLS = \/media\/baptiste\/hdd\/Cours\/CoursS2\/psar\/kernel\/linux-5.10.17\/samples\/bpf$/;"	m
+CLANG	Makefile	/^CLANG = clang$/;"	m
+DEBUGFS	loader.c	/^#define DEBUGFS /;"	d	file:
+EXECABLE	Makefile	/^EXECABLE = monitor-exec$/;"	m
+LIBRARY_PATH	Makefile	/^LIBRARY_PATH = -L\/usr\/local\/lib64$/;"	m
+SEC	hello_world.c	/^#define SEC(/;"	d	file:
+_license	hello_world.c	/^char _license[] SEC("license") = "GPL";/;"	v	typeref:typename:char[]SEC ("")
+bpf_prog	hello_world.c	/^int bpf_prog(void *ctx) {$/;"	f	typeref:typename:SEC ("")int
+bpf_trace_printk	hello_world.c	/^static int (*bpf_trace_printk)(const char *fmt, int fmt_size,$/;"	v	typeref:typename:int (*)(const char * fmt,int fmt_size,...)	file:
+bpfload	Makefile	/^bpfload: build$/;"	t
+build	Makefile	/^build: ${BPFCODE.c} ${BPFLOADER}$/;"	t
+clean	Makefile	/^clean:$/;"	t
+main	loader.c	/^int main(int argc, char **argv) {$/;"	f	typeref:typename:int
+read_trace_pipe	loader.c	/^void read_trace_pipe(void)$/;"	f	typeref:typename:void

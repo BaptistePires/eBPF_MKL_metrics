@@ -1,0 +1,36 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	//
+$(EXECABLE)	Makefile	/^$(EXECABLE): bpfload$/;"	t
+.DEFAULT_GOAL	Makefile	/^.DEFAULT_GOAL := $(EXECABLE)/;"	m
+BPFCODE	Makefile	/^BPFCODE = wrapper$/;"	m
+BPFLOADER	Makefile	/^BPFLOADER = $(BPFTOOLS)\/bpf_load.c$/;"	m
+BPFSO	Makefile	/^BPFSO = -lbpf$/;"	m
+BPFTOOLS	Makefile	/^BPFTOOLS = \/media\/baptiste\/hdd\/Cours\/CoursS2\/psar\/kernel\/linux-5.10.17\/samples\/bpf$/;"	m
+CLANG	Makefile	/^CLANG = clang$/;"	m
+EXECABLE	Makefile	/^EXECABLE = monitor-exec$/;"	m
+FIFO_PATH	loader.c	/^#define FIFO_PATH /;"	d	file:
+LIBRARY_PATH	Makefile	/^LIBRARY_PATH = -L\/usr\/local\/lib64$/;"	m
+SAVE_FILENAME	loader.c	/^#define SAVE_FILENAME /;"	d	file:
+SEC	core.c	/^#define SEC(/;"	d	file:
+SEC	hw.c	/^#define SEC(/;"	d	file:
+SEC	wrapper.c	/^#define SEC(/;"	d	file:
+_license	hw.c	/^char _license[] SEC("license") = "GPL";$/;"	v	typeref:typename:char[]SEC ("")
+_license	wrapper.c	/^char _license[] SEC("license") = "GPL";/;"	v	typeref:typename:char[]SEC ("")
+bpf_prog	hw.c	/^int bpf_prog(void *ctx) {$/;"	f	typeref:typename:SEC ("")int
+bpf_prog	wrapper.c	/^int bpf_prog(void *ctx) {$/;"	f	typeref:typename:SEC ("")int
+bpfload	Makefile	/^bpfload: build$/;"	t
+build	Makefile	/^build: ${BPFCODE.c} ${BPFLOADER}$/;"	t
+clean	Makefile	/^clean:$/;"	t
+core	core.c	/^int core(void *ctx) {$/;"	f	typeref:typename:int
+fifo_read_fd	loader.c	/^int fifo_read_fd, fifo_write_fd;$/;"	v	typeref:typename:int
+fifo_read_path	loader.c	/^char *fifo_read_path, *fifo_write_path;$/;"	v	typeref:typename:char *
+fifo_write_fd	loader.c	/^int fifo_read_fd, fifo_write_fd;$/;"	v	typeref:typename:int
+fifo_write_path	loader.c	/^char *fifo_read_path, *fifo_write_path;$/;"	v	typeref:typename:char **
+main	loader.c	/^int main(int argc, char **argv) {$/;"	f	typeref:typename:int
+retrieve_map_value	loader.c	/^void retrieve_map_value(void)$/;"	f	typeref:typename:void
+update_time	wrapper.c	/^static __always_inline void update_time(void *map, __u64 *new_value)$/;"	f	typeref:typename:__always_inline void	file:
