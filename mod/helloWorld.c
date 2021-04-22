@@ -11,7 +11,7 @@
 extern struct kobject *kernel_kobj;
 
 struct store_time {
-    ktime_t times[100];
+    __u64 times[100];
     __u8 count;
 }static time_values;
 
@@ -38,10 +38,10 @@ static struct kobj_attribute helloWorld_attr = __ATTR_RO(helloWorld);
 
 static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
-    ktime_t t0, delta;
-    t0 = ktime_get();
+    __u64 t0, delta;
+    t0 = ktime_get_mono_fast_ns();
 	pr_info("Hello World\n");
-    delta = ktime_get() - t0;
+    delta = ktime_get_mono_fast_ns() - t0;
 
     if(time_values.count < 100){
         time_values.times[time_values.count++] = delta;

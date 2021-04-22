@@ -11,6 +11,21 @@ import signal
     JIT & Verifier benchmarks
 """
 
+def __write_to_jit(is_enabled: int) -> bool:
+    if is_enabled != 1 and is_enabled != 0:
+        print("write_to_jit accepts [0; 1] only")
+        return False
+
+    with open(const.BPF_JIT_ENABLE, "w") as f:
+        f.write(str(is_enabled))
+
+    return True
+def deactivate_jit() -> bool:
+    return __write_to_jit(0)
+
+def activate_jit() -> bool:
+    return __write_to_jit(1)
+
 def __setup_ftrace() -> bool:
 
     # Checks that `grap-function` is allowed

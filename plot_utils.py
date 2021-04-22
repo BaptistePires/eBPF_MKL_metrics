@@ -7,23 +7,19 @@ import tempfile
 
 from constants import FIGURES_DIR
 
+
 """
-    JIT function
+    Stats functions
 """
-def __write_to_jit(is_enabled: int) -> bool:
-    if is_enabled != 1 and is_enabled != 0:
-        print("write_to_jit accepts [0; 1] only")
-        return False
+def remove_outliers(arr):
+    mean = np.mean(arr)
+    std_dev = np.std(arr)
+    mean_dst = abs(arr - mean)
+    max_dev = 2
+    not_outlier = mean_dst < max_dev * std_dev
+    return arr[not_outlier]
 
-    with open(const.BPF_JIT_ENABLE, "w") as f:
-        f.write(str(is_enabled))
 
-    return True
-def deactivate_jit() -> bool:
-    return __write_to_jit(0)
-
-def activate_jit() -> bool:
-    return __write_to_jit(1)
 
 
 """
@@ -87,3 +83,32 @@ def plot_boxplot(values, x_lim, title, show=False) -> str:
     plt.savefig(save_path)
     if show: plt.show()
     return save_path
+
+def plot_durations(durations: list, label: str, title: str, filename: str):
+    if len(durations) == 0:
+        print("duratoins array has a 0 size")
+        return
+
+    plt.cla()
+    plt.clf()
+    durations = np.array(durations)
+    durations = remove_outliers(durations)
+    max_value = max(durations)
+    min_value = min(durations)
+
+    data_dict = {
+        label: durations
+    }
+
+    delta = (max_value - min_value) // 10
+    y_ticks = [min_value+delta*i for i in range(11)]
+    y_ticks.insert(0, min_value)
+    y_ticks.append(max_value)
+
+    df = pd.DataFrame(data_dict)
+
+    ax = sns.swarmplot(data=df, s=4)
+    ax2 = sns.boxplot(data=df, boxprops={'facecolor':'None'}, width=0.3)
+    ax.set_yticks(y_ticks)
+    plt.title(title)
+    plt.savefig(filename)
