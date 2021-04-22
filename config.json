@@ -1,9 +1,11 @@
 {
     "bpf":{
-        "dir": "/media/baptiste/hdd/Cours/CoursS2/psar/share/platform/bpf",
+        "dir": "bpf",
         "bpf_filename": "wrapper.o"
     },
     "module":{
-        "dir": "./mod"
-    }
+        "dir": "mod",
+        "name": "helloWorld.ko"
+    }, 
+    "tester": "../basic_hw/ins_module.sh"
 }

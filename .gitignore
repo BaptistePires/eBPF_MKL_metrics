@@ -1,7 +1,9 @@
 .vscode
-__pycache__
+**/__pycache__
 .vscode-tags
 **/*.mod
 **/*.o
 **/*.ko
 **/*.txt
+**/*.mod.o
+**/Module.symvers

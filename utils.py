@@ -2,6 +2,7 @@ import os
 import constants as const
 from plot_utils import *
 import subprocess as subp
+import time
 
 
 """
@@ -79,7 +80,7 @@ def __parse_ftrace_trace() -> dict:
     return func_durations
     
 
-def benchmark_jit_verifier(config: dict) -> bool:
+def benchmark_jit_verifier(config: dict, do_compile=False) -> dict:
     """
         Will insert multiple times an eBPF program and retrieve functions' 
         durations.
@@ -89,22 +90,38 @@ def benchmark_jit_verifier(config: dict) -> bool:
         print("Aborting, can't config ftrace...")
         return False
 
-    make_sp = subp.Popen(["make"], cwd=config_bpf["dir"])
-    
-    make_sp.wait()
-    if make_sp.returncode != 0:
-        print("Error while invoking `make` in dir %s", config_bpf["dir"])
-        return False
-    
-    bpf_abs_path = os.path.join(config_bpf["dir"],config_bpf["bpf_filename"])
+    returned_data = {
+        "status": 0,
+        "compile": 0.0,
+        "insertion_total": [],
+        "insertion_funcs" : None
+    }
+
+    if do_compile:
+        t0 = time.time_ns()
+        make_sp = subp.Popen(["make"], cwd=config_bpf["dir"], stdout=subp.PIPE)
+        make_sp.wait()
+        delta = (time.time_ns() - t0) / 1e+6
+
+        if make_sp.returncode != 0:
+            print("Error while invoking `make` in dir %s", config_bpf["dir"])
+            returned_data["status"] = -1
+            return returned_data
+        returned_data["compile"] = delta
+
+    bpf_abs_path = os.path.join(os.getcwd(), config_bpf["dir"],config_bpf["bpf_filename"])
     
     for i in range(const.TOTAL_INSERT_RUN):
-        loader_sb = subp.Popen(["./loader", bpf_abs_path], cwd="tools")
+        t0 = time.time_ns()
+        loader_sb = subp.Popen(["./loader", bpf_abs_path], cwd="tools", stdout=subp.PIPE)
         loader_sb.wait()
+        returned_data["insertion_total"].append((time.time_ns() - t0) / 1e+6)
 
     durations = __parse_ftrace_trace()
     if durations is None:
-        return False
+        returned_data["status"] = -1
+        return returned_data
+    returned_data["insertion_funcs"] = durations
 
     all_values = []
     for func_name in durations: all_values += durations[func_name]
@@ -113,7 +130,6 @@ def benchmark_jit_verifier(config: dict) -> bool:
     if min_val == 0:
         min_val = -10
     else:
-        print("mint_val", min_val)
         min_val *= 0.8
     
     max_val = max(all_values) * 1.2
@@ -123,6 +139,70 @@ def benchmark_jit_verifier(config: dict) -> bool:
 
     print("Figure for insertion saved at %s" % save_path)
 
+    return returned_data
+
+
+"""
+    Linux modules related functions
+"""
+def benchmark_linux_module_ins(config: dict, do_compile=False) -> bool:
+    # TODO : Chercher les fonctions qui pourraient être intéressantes à mesurer
+    # lors de l'insertion d'un module
+    module_config = config["module"]
+    
+    returned_data = {
+        "status": 0,
+        "compile": 0.0,
+        "insertion_total": []
+    }
+    # Compile
+    if do_compile:
+        t0 = time.time_ns()
+        make_sp = subp.Popen(["make"], cwd=module_config["dir"], stdout=subp.PIPE)
+        make_sp.wait()
+        returned_data["compile"] = (time.time_ns() - t0) / 1e+6
+
+        if make_sp.returncode != 0:
+            print("Error while invoking `make` in dir %s"% module_config["dir"])
+            returned_data["status"] = -1
+            return returned_data
+        print("Module compilation took %s ms" % times["compile"])
+
+    # Load module
+    mod_file = module_config["name"]
+    mod_name = ""
+    if not mod_file.endswith(".ko"):
+        mod_file += ".ko"
+
+    mod_name = mod_file.split('.')[0]
+    for i in range(const.TOTAL_INSERT_RUN):
+        t0 = time.time_ns()
+        loader_sp = subp.Popen(["insmod", mod_file], cwd=module_config["dir"], stdout=subp.PIPE)
+        loader_sp.wait()
+        returned_data["insertion_total"].append((time.time_ns() - t0) / 1e+6)
+        
+        if loader_sp.returncode != 0:
+            print("There was an error while inserting module, can't retrieve values.")
+            print("File : %s" % mod_file)
+            returned_data["status"] = -1
+            return returned_data
+
+        
+
+        rmmod_sb = subp.Popen(["rmmod", mod_name], stdout=subp.PIPE)
+        rmmod_sb.wait()
+
+        if rmmod_sb.returncode != 0:
+            print("There was an error while removing module named %s" % mod_name)
+            returned_data["status"] = -1
+            return returned_data
+
+        return returned_data
+
+    
+
+    
     
     
 
+    return True
