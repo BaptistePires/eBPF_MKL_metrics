@@ -3,7 +3,9 @@ import constants as const
 from plot_utils import *
 import subprocess as subp
 import time
-
+import random
+import string
+import signal
 
 """
     JIT & Verifier benchmarks
@@ -140,6 +142,95 @@ def benchmark_jit_verifier(config: dict, do_compile=False) -> dict:
     print("Figure for insertion saved at %s" % save_path)
 
     return returned_data
+
+"""
+    eBPF benchmark
+"""
+def benchmark_bpf_execution(config: dict) -> dict:
+    config_bpf = config["bpf"]
+
+    returned_data = {
+        "status": 0,
+        "exec_times": []
+    }
+    
+    bpf_abs_path = os.path.join(os.getcwd(), config_bpf["dir"],config_bpf["bpf_filename"])
+    
+    # r/w pipes used to communicate with the subprocess
+    r_sub, w_sub = os.pipe()
+    r_main, w_main = os.pipe()
+    out_sub = os.fdopen(r_sub, 'r')
+    in_sub = os.fdopen(w_main, 'w')
+    pipe_read_name = "/tmp/%s" % ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+    pipe_write_name = "/tmp/%s" % ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+    # Load eBPF 
+    loader_sb = subp.Popen(["./monitor-exec", config_bpf["bpf_filename"], pipe_read_name, pipe_write_name], cwd=config_bpf["dir"], stdout=os.fdopen(w_sub, 'w'), stdin=os.fdopen(r_main, 'r'))
+    
+
+    # Check if eBPF loading went OK
+    
+    try:
+        value = int(out_sub.read(1))
+    except ValueError as e:
+        print("Error while reading loader output in eBPF loader")
+        print(e)
+        returned_data["status"] = -1
+        return returned_data
+    
+    if value < 0:
+        print("Value returned by eBPF loader < 0")
+        returned_data["status"] = -1
+        return returned_data
+
+    # Generate events to trigger eBPF program
+    events_sb = subp.Popen(["sudo", "sh", config["tester"]])
+    events_sb.wait()
+    if events_sb.returncode != 0:
+        print("Process running %s returned non-zero value : %s" % (config["tester"], events_sb.returncode))
+        returned_data["status"] = -1
+        return returned_data
+
+    loader_sb.send_signal(signal.SIGCONT)
+    
+    in_sub.write("1")
+    
+
+    # Check if eBPF loading went OK
+    
+    try:
+        value = int(out_sub.read())      
+    except ValueError as e:
+        print("Error while reading loader output in eBPF loader")
+        print(e)
+        returned_data["status"] = -1
+        return returned_data
+    
+    if value != 1:
+        print("There was an error while retrieving values in eBPF maps.")
+        returned_data["status"] = -1
+        return returned_data
+    
+    time_file_path = path.join(os.getcwd(), config_bpf["dir"], "time_values.csv")
+    with open(time_file_path, "r") as f:
+        lines = f.readlines()
+        if len(lines) == 0:
+            print("sssNo time values in file %s." % time_file_path)
+            returned_data["status"] = -1
+            return returned_data
+        
+        time_values = [int(x) for x in lines[0].split(',') if int(x) != 0]
+        if len(time_values) <= 0:
+            print("No time values in file %s." % time_file_path)
+            returned_data["status"] = -1
+            return returned_data
+
+        returned_data["exec_times"] = time_values
+    return returned_data
+
+    
+    
+
+    
 
 
 """

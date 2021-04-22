@@ -7,3 +7,4 @@
 **/*.txt
 **/*.mod.o
 **/Module.symvers
+**/*.csv
