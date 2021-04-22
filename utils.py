@@ -290,10 +290,57 @@ def benchmark_linux_module_ins(config: dict, do_compile=False) -> bool:
 
         return returned_data
 
-    
-
-    
-    
-    
-
     return True
+
+def benchmark_module_execution(config: dict) -> dict:
+    mod_config = config["module"]
+
+    returned_data = {
+        "status": 0,
+        "exec_times": []
+    }
+
+    mod_file = mod_config["name"]
+    mod_name = ""
+    if not mod_file.endswith(".ko"):
+        mod_file += ".ko"
+
+    mod_name = mod_file.split('.')[0]
+    loader_sp = subp.Popen(["insmod", mod_file], cwd=mod_config["dir"], stdout=subp.PIPE)
+    loader_sp.wait()
+
+    if loader_sp.returncode != 0:
+        print("An error ocurred while inserting module %s" % mod_config["name"])
+        returned_data["status"] = -1
+        return returned_data
+
+    events_sb = subp.Popen(["sudo", "sh", config["tester"]])
+    events_sb.wait()
+    if events_sb.returncode != 0:
+        print("Process running %s returned non-zero value : %s" % (config["tester"], events_sb.returncode))
+        returned_data["status"] = -1
+        return returned_data
+
+    # Reading kobj
+    kobj_path = path.join("/sys/kernel", mod_config["kobj_name"])
+    with open(kobj_path, "r") as f:
+        line = f.readline()
+        values = line.split(',')
+        if len(values) == 0:
+            print("No values retrieved from kobject : %s" % kobj_path)
+            returned_data["status"] = -1
+            return returned_data
+
+        returned_data["exec_times"] = [int(x) for x in values if x != 0]
+    
+
+    rmmod_sb = subp.Popen(["rmmod", mod_name], stdout=subp.PIPE)
+    rmmod_sb.wait()
+
+    if rmmod_sb.returncode != 0:
+        print("There was an error while removing module named %s" % mod_name)
+        returned_data["status"] = -1
+        return returned_data
+
+    
+    return returned_data

@@ -79,15 +79,15 @@ void retrieve_map_value(void)
   if(bpf_map_lookup_elem(map_data[0].fd, &key, &value_count)) {
     perror("bpf_map_lookup_elem");
     printf("-1");
-    return ;
+    goto end;
   }
-
+  fprintf(stderr, "value count : %llu\n", value_count);
   time_values = (__u64 *) malloc(sizeof(__u64) * value_count);
   if(time_values == NULL){
     perror("malloc");
     printf("-1");
     fflush(stdout);
-    return;
+    goto end;
   }
 
   __u32 tmp_key = 1;
@@ -96,7 +96,7 @@ void retrieve_map_value(void)
       perror("bpf_map_lookup_elem");
       printf("-1");
       fflush(stdout);
-      return ;
+      goto end;
     }
     time_values[tmp_key - 1] = value;
   }
@@ -120,5 +120,5 @@ void retrieve_map_value(void)
   
   end:
   free(time_values);
-  fflush(stdout);
+  
 }

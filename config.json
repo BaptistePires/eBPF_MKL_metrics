@@ -5,7 +5,8 @@
     },
     "module":{
         "dir": "mod",
-        "name": "helloWorld.ko"
+        "name": "helloWorld.ko",
+        "kobj_name": "helloWorld"
     }, 
     "tester": "../basic_hw/ins_module.sh"
 }
