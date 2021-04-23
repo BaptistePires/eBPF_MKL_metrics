@@ -57,7 +57,7 @@ if bench_execution:
         with open(filepath, "w") as f:
             json.dump(ebpf_data, f)
         print("ebpf data retrived saved at %s " % filepath)
-        plot_durations(ebpf_data["exec_times"], "eBPF", "eBPF overhead in ms", "out/ebpf_durations.png")
+        plot_durations(ebpf_data["exec_times"], "eBPF", "eBPF overhead in ns", "out/ebpf_durations.png")
 
     module_data = benchmark_module_execution(config)
     if module_data["status"] == 0:
@@ -65,7 +65,7 @@ if bench_execution:
         with open(filepath, "w") as f:
             json.dump(module_data, f)
         print("module data retrived saved at %s " % filepath)
-        plot_durations(module_data["exec_times"], "Linux Module", "Linux Module overhead in ms", "out/linux_module_durations.png")
+        plot_durations(module_data["exec_times"], "Linux Module", "Linux Module overhead in ns", "out/linux_module_durations.png")
     
 if bench_execution:
     print("execution benchmark")

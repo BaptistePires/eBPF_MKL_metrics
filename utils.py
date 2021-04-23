@@ -185,10 +185,12 @@ def benchmark_bpf_execution(config: dict) -> dict:
     # Check if eBPF loading went OK
     
     try:
-        value = int(out_sub.read(1))
+        value = out_sub.read(1)
+        value = int(value[0])
     except ValueError as e:
         print("Error while reading loader output in eBPF loader")
         print(e)
+        print(out_sub.read())
         returned_data["status"] = -1
         return returned_data
     
@@ -241,11 +243,6 @@ def benchmark_bpf_execution(config: dict) -> dict:
 
         returned_data["exec_times"] = time_values
     return returned_data
-
-    
-    
-
-    
 
 
 """

@@ -5,7 +5,14 @@
 
 int core(void *ctx) {
   
-  bpf_printk("Hello world :)\n");
-  return 0;
+  __u32 i;
+  __u64 res;
+
+  #pragma unroll
+  for(i = 0; i < 1000; ++i)
+    res += i* 7 + *((int*)ctx) ;
+
+  bpf_printk("salu\n");
+  return res;
 }
 

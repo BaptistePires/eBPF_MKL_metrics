@@ -39,9 +39,14 @@ static struct kobj_attribute helloWorld_attr = __ATTR_RO(helloWorld);
 static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
     __u64 t0, delta;
-    t0 = ktime_get_mono_fast_ns();
-	pr_info("Hello World\n");
-    delta = ktime_get_mono_fast_ns() - t0;
+    t0 = ktime_get();
+	// printk("Hello World\n");
+	u32 i, res;
+
+	for(i = 0; i < 100; ++i)
+		res += i*2;
+
+    delta = ktime_get() - t0;
 
     if(time_values.count < 100){
         time_values.times[time_values.count++] = delta;
@@ -60,7 +65,7 @@ static int __init kprobe_init(void)
 		printk(KERN_INFO "register_kprobe failed, returned %d\n", ret);
 		return ret;
 	}
-	printk(KERN_INFO "Planted kprobe at %p\n", kp.addr);
+	// printk(KERN_INFO "Planted kprobe at %p\n", kp.addr);
 
 	ret = sysfs_create_file(kernel_kobj, &helloWorld_attr.attr);
 	if(ret){

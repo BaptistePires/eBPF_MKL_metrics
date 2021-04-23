@@ -101,7 +101,7 @@
 #include <linux/bpf.h>
 #include <linux/types.h>
 #include <bpf/bpf_helpers.h>
-
+#include <linux/membarrier.h>
 
 #define SEC(NAME) __attribute__((section(NAME), used))
 
@@ -152,19 +152,35 @@ static __always_inline void update_time(void *map, __u64 *new_value)
 
 SEC("tracepoint/printk/console")
 int bpf_prog(void *ctx) {
-    __u64 t0, delta;
+    
     int res;
     
-    t0 = bpf_ktime_get_ns();
+    __u64 t0, delta, t1;
+    __u64 *delta_addr = &delta, *t0_addr = &t0;
+    asm volatile("call 5 \n r6 = r0" :::);
+    core(ctx);
+    asm volatile("call 5 \n r0 -= r6" :::);
+    asm volatile("*(u64 *)(%0 + 0) = r0"::"r"(delta_addr));
     
-    res = core(ctx);
-    
-    delta = bpf_ktime_get_ns() - t0;
-    
-    char log[] = "core.c delta = %li\n"; 
-    bpf_trace_printk(log, sizeof(log), delta);
-    bpf_printk("working at least\n");
+   
     update_time(&time_map, &delta);
+         // __u64 *delta_addr = &delta;
+    // asm volatile("call 5":::);
+    // asm volatile("r6 = r0" :::);
+    // // bpf_printk("hello ???\n");
+
+    
+    // asm volatile("call 5" :::);
+    // asm volatile("r0 -= r6":::);
+    // asm volatile("*(u64 *)(%0 + 0) = r0"
+    // :"=r"(delta_addr)
+    // :
+    // :);
+
+
+    // bpf_printk("delta : %llu\n", delta);
+    // }
+    
     return res;
 }
 

@@ -67,11 +67,17 @@ def plot_boxplot(values, x_lim, title, show=False) -> str:
     if len(values) == 0:
         return None
     
-    df = pd.DataFrame.from_dict(values)
+    
+
+    df = pd.DataFrame(values)
     # bp = sns.boxplot(x="Function nampe", y="Execution time (ms)", data=df)
     plt.title(title)
-    boxplot = pd.DataFrame.boxplot(df)
+    # boxplot = pd.DataFrame.boxplot(df)
+    ax = sns.boxplot(data=df, width=0.5,boxprops={'facecolor':'None'},)
+    ax2 = sns.swarmplot(data=df, s=4, zorder=.5) 
     
+    
+    y_ticks = []
     
 
     plt.xlabel("Function name")
@@ -79,7 +85,7 @@ def plot_boxplot(values, x_lim, title, show=False) -> str:
     
     
     title = title.replace(' ', '_') + '.png'
-    save_path = path.join(FIGURES_DIR, title) 
+    save_path = path.join("out", title) 
     plt.savefig(save_path)
     if show: plt.show()
     return save_path
