@@ -4,15 +4,17 @@ EXECABLE = monitor-exec
 
 BPFCODE = wrapper
 
-BPFTOOLS = /media/baptiste/hdd/Cours/CoursS2/psar/kernel/linux-5.10.17/samples/bpf
+KERNEL_SRC = /media/baptiste/hdd/Cours/CoursS2/psar/kernel/linux-5.10.17
+
+BPFTOOLS = $(KERNEL_SRC)/samples/bpf
 BPFLOADER = $(BPFTOOLS)/bpf_load.c
 
-CCINCLUDE += -I/media/baptiste/hdd/Cours/CoursS2/psar/kernel/linux-5.10.17/tools/testing/selftests/bpf
+CCINCLUDE += -I$(KERNEL_SRC)/tools/testing/selftests/bpf
 
-LOADINCLUDE += -I/media/baptiste/hdd/Cours/CoursS2/psar/kernel/linux-5.10.17/samples/bpf
-LOADINCLUDE += -I/media/baptiste/hdd/Cours/CoursS2/psar/kernel/linux-5.10.17/tools/lib
-LOADINCLUDE += -I/media/baptiste/hdd/Cours/CoursS2/psar/kernel/linux-5.10.17/tools/perf
-LOADINCLUDE += -I/media/baptiste/hdd/Cours/CoursS2/psar/kernel/linux-5.10.17/tools/include
+LOADINCLUDE += -I$(KERNEL_SRC)/samples/bpf
+LOADINCLUDE += -I$(KERNEL_SRC)/tools/lib
+LOADINCLUDE += -I$(KERNEL_SRC)/tools/perf
+LOADINCLUDE += -I$(KERNEL_SRC)/tools/include
 LIBRARY_PATH = -L/usr/local/lib64
 BPFSO = -lbpf
 
@@ -30,7 +32,7 @@ BPFSO = -lbpf
 # See more context at:
 # https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=06f84d1989b7e58d56fa2e448664585749d41221
 # https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=fce9501aec6bdda45ef3a5e365a5e0de7de7fe2d
-CFLAGS += $(shell grep -q "define HAVE_ATTR_TEST 1" /media/baptiste/hdd/Cours/CoursS2/psar/kernel/linux-5.10.17/tools/perf/perf-sys.h \
+CFLAGS += $(shell grep -q "define HAVE_ATTR_TEST 1" $(KERNEL_SRC)/tools/perf/perf-sys.h \
                   && echo "-DHAVE_ATTR_TEST=0")
 
 CFLAGS += -g

@@ -1,10 +1,10 @@
 {
     "bpf":{
-        "dir": "bpf",
+        "dir": "example/bpf",
         "bpf_filename": "wrapper.o"
     },
     "module":{
-        "dir": "mod",
+        "dir": "example/mod",
         "name": "helloWorld.ko",
         "kobj_name": "helloWorld"
     }, 

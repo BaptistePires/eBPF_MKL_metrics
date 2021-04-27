@@ -1,6 +1,6 @@
 .vscode
 **/__pycache__
-.vscode-tags
+**/.vscode-tags
 **/*.mod
 **/*.o
 **/*.ko
@@ -9,3 +9,4 @@
 **/Module.symvers
 **/*.csv
 **/*.png
+out/

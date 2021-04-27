@@ -132,6 +132,7 @@ def benchmark_jit_verifier(config: dict, do_compile=False) -> dict:
         t0 = time.time_ns()
         loader_sb = subp.Popen(["./loader", bpf_abs_path], cwd="tools", stdout=subp.PIPE)
         loader_sb.wait()
+        # Convert ns to ms
         returned_data["insertion_total"].append((time.time_ns() - t0) / 1e+6)
 
     durations = __parse_ftrace_trace()
@@ -300,9 +301,8 @@ def benchmark_linux_module_ins(config: dict, do_compile=False) -> bool:
             returned_data["status"] = -1
             return returned_data
 
-        return returned_data
+    return returned_data
 
-    return True
 
 def benchmark_module_execution(config: dict) -> dict:
     mod_config = config["module"]

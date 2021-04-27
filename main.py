@@ -1,72 +1,77 @@
-import argparse
-import sys
-import os
-import tempfile
-import subprocess
-import string
-import random
-from ctypes import *
-import signal
+from os import getgid, path, mkdir
+from sys import argv
 
-import constants as const
-from utils import *
+from plot_utils import plot_durations, plot_insmod_loadBPF, plot_module_vs_eBPF
+from config_utils import *
+from utils import benchmark_jit_verifier, benchmark_linux_module_ins, benchmark_bpf_execution, benchmark_module_execution
+if getgid() != 0:
+    print("Please run as sudo")
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--dir", type=str, help="", default=".")
-args = parser.parse_args()
+config_create = "--create_config" in argv or "-c" in argv
 
-if os.geteuid() != 0:
-    print("Need to run with sudo")
+if config_create:
+    generate_config_file()
     exit()
 
-bpf_path = args.dir
+bench_loading = "--loading" in argv or "-l" in argv
+bench_execution = "--execution" in argv or "-e" in argv
 
-if not os.path.exists(bpf_path):
-    print("Directory %s doesn't exist" % bpf_path)
+
+if not bench_loading and not bench_execution:
+    print("Usage :")
+    print("To benchmark eBPF and module loading use --loading or -l")
+    print("To benchmark eBPF and module execution time use --execution or -e")
     exit()
 
-print("Target directory %s" % bpf_path)
-print("Activating JIT")
-if not activate_jit():
-    print("Error while activating JIT")
-    exit()
+config = get_config()
 
+if config is None: exit()
+# if not check_config_dirs(config): exit()
 
-pipe_read_name = "/tmp/%s" % ''.join(random.choice(string.ascii_lowercase) for i in range(10))
-pipe_write_name = "/tmp/%s" % ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+if not path.exists("figures"):
+    mkdir("figures")
 
+if not path.exists("out"):
+    mkdir("out")
 
-r_sub, w_sub = os.pipe()
-r_main, w_main = os.pipe()
-loader_child = subprocess.Popen(["./monitor-exec", "wrapper.o", pipe_read_name, pipe_write_name], cwd=bpf_path, stdout=os.fdopen(w_sub, 'w'), stdin=os.fdopen(r_main, 'r'))
-
-out_sub = os.fdopen(r_sub, 'r')
-
-# pipe_read = open(pipe_r   ead_name, 'r')
-print("Waiting for value in child stdout")
-value = int(out_sub.read(1))
-print("Value read %s ::" % value)
-
-if value < 0:
-    print("Error while inserting BPF program")
+print("Starting benchmark with config :", config, sep="\n")
+if bench_loading:
+    ebpf_data = benchmark_jit_verifier(config)
+    module_data = benchmark_linux_module_ins(config)
+    if ebpf_data["status"] == 0:
+        filepath = "out" + sep + "ebpf_values_loading.json"
+        with open(filepath, "w") as f:
+            json.dump(ebpf_data, f)
+        print("ebpf data retrived saved at %s " % filepath)
+        
     
-    child.wait()
+    if module_data["status"] == 0:
+        filepath = "out" + sep + "module_values_loading.json"
+        with open(filepath, "w") as f:
+            json.dump(module_data, f)
+        print("module data retrived saved at %s " % filepath)
 
-# Generate events 
-print("Generating events with module")
-module_child = subprocess.Popen(["insmod", "helloWorld.ko"], cwd="./mod/")
-module_child.wait()
-module_child = subprocess.Popen(["rmmod", "helloWorld"], cwd="./mod/")
-module_child.wait()
-loader_child.send_signal(signal.SIGCONT)
-# Notify loader to retrieve values
+    if ebpf_data["status"] == 0 and module_data["status"] == 0:
+        plot_insmod_loadBPF(module_data["insertion_total"], ebpf_data["insertion_total"])
 
-in_sub = os.fdopen(w_main, 'w')
-in_sub.write("1")
+if bench_execution:
+    ebpf_data = benchmark_bpf_execution(config)
+    if ebpf_data["status"] == 0:
+        filepath = "out" + sep + "ebpf_values_exec.json"
+        with open(filepath, "w") as f:
+            json.dump(ebpf_data, f)
+        print("ebpf data retrived saved at %s " % filepath)
+        plot_durations(ebpf_data["exec_times"], "eBPF", "eBPF overhead in ns", "out/ebpf_durations.png")
 
-generate_figure(const.OUTPUT_FILE_FIGURE)
+    module_data = benchmark_module_execution(config)
+    if module_data["status"] == 0:
+        filepath = "out" + sep + "module_values_exec.json"
+        with open(filepath, "w") as f:
+            json.dump(module_data, f)
+        print("module data retrived saved at %s " % filepath)
+        plot_durations(module_data["exec_times"], "Linux Module", "Linux Module overhead in ns", "out/linux_module_durations.png")
 
-os.close(w_main)
-
-
-
+    if ebpf_data["status"] == 0 and module_data["status"] == 0:
+        plot_module_vs_eBPF(module_data["exec_times"], ebpf_data["exec_times"], "Linux Module vs eBPF overhead")
+if bench_execution:
+    print("execution benchmark")
