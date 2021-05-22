@@ -3,7 +3,9 @@ from sys import argv
 
 from plot_utils import plot_durations, plot_insmod_loadBPF, plot_module_vs_eBPF
 from config_utils import *
-from utils import benchmark_jit_verifier, benchmark_linux_module_ins, benchmark_bpf_execution, benchmark_module_execution
+from utils import activate_jit, benchmark_jit_verifier, benchmark_linux_module_ins, benchmark_bpf_execution, benchmark_module_execution, deactivate_jit
+from time import sleep
+
 if getgid() != 0:
     print("Please run as sudo")
 
@@ -55,6 +57,17 @@ if bench_loading:
         plot_insmod_loadBPF(module_data["insertion_total"], ebpf_data["insertion_total"])
 
 if bench_execution:
+    deactivate_jit()
+    ebpf_data_nojit = benchmark_bpf_execution(config)
+    if ebpf_data_nojit["status"] == 0:
+        filepath = "out" + sep + "ebpf_interpreted_values_exec.json"
+        with open(filepath, "w") as f:
+            json.dump(ebpf_data_nojit, f)
+        print("ebpf data retrived saved at %s " % filepath)
+        plot_durations(ebpf_data_nojit["exec_times"], "eBPF", "eBPF (interpreted) overhead in ns", "out/ebpf_interpreted_durations.png")
+
+    activate_jit()
+    sleep(1)
     ebpf_data = benchmark_bpf_execution(config)
     if ebpf_data["status"] == 0:
         filepath = "out" + sep + "ebpf_values_exec.json"
@@ -63,6 +76,7 @@ if bench_execution:
         print("ebpf data retrived saved at %s " % filepath)
         plot_durations(ebpf_data["exec_times"], "eBPF", "eBPF overhead in ns", "out/ebpf_durations.png")
 
+    sleep(1)
     module_data = benchmark_module_execution(config)
     if module_data["status"] == 0:
         filepath = "out" + sep + "module_values_exec.json"
@@ -71,7 +85,12 @@ if bench_execution:
         print("module data retrived saved at %s " % filepath)
         plot_durations(module_data["exec_times"], "Linux Module", "Linux Module overhead in ns", "out/linux_module_durations.png")
 
-    if ebpf_data["status"] == 0 and module_data["status"] == 0:
-        plot_module_vs_eBPF(module_data["exec_times"], ebpf_data["exec_times"], "Linux Module vs eBPF overhead")
+    if ebpf_data["status"] == 0 and module_data["status"] == 0 and ebpf_data_nojit["status"] == 0:
+        plot_module_vs_eBPF(module_data["exec_times"], ebpf_data["exec_times"], ebpf_data_nojit["exec_times"], "Linux Module vs eBPF overhead",
+            "module_vs_ebpf_overhead_jit.png")
+
+    if ebpf_data["status"] == 0 and module_data["status"] == 0 and ebpf_data_nojit["status"] == 0:
+        plot_module_vs_eBPF(module_data["exec_times"], ebpf_data["exec_times"], None, "Linux Module vs eBPF overhead", "module_vs_ebpf_overhead.png")
+
 if bench_execution:
     print("execution benchmark")

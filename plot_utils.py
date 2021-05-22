@@ -40,8 +40,8 @@ def generate_figure(output_name:str):
         plt.xlabel("execution index")
         plt.ylabel("time in ns")
         
-        max_v, max_id = (max(values), values.index(max(values)))
-        min_v, min_id = (min(values), values.index(min(values)))
+        # max_v, max_id = (max(values), values.index(max(values)))
+        # min_v, min_id = (min(values), values.index(min(values)))
         
         ax.plot(values,'ro', markersize=3, label="data")
         ax.plot([0, 100], [mean] * 2, linestyle='--', label="mean")
@@ -73,17 +73,30 @@ def plot_boxplot(values, x_lim, title, show=False) -> str:
     sns.set_style("darkgrid")
     df = pd.DataFrame(values)
     # bp = sns.boxplot(x="Function nampe", y="Execution time (ms)", data=df)
-    plt.title(title)
+    # plt.title(title)
     # boxplot = pd.DataFrame.boxplot(df)
     ax = sns.boxplot(data=df, width=0.5,boxprops={'facecolor':'None'},)
     ax2 = sns.swarmplot(data=df, s=4, zorder=.5) 
     
-                                        
-    y_ticks = [min(values["bpf_check"]), min(values["bpf_int_jit_compile"])]
-    
+    # min_v = min(min(values["bpf_check"]), min(values["bpf_int_jit_compile"]))
+    # max_v = max(max(values["bpf_check"]), max(values["bpf_int_jit_compile"]))
+    # curr_step = min_v
+    # step = max_v / 20
+    # y_ticks = [
+    #     min(values["bpf_check"]), min(values["bpf_int_jit_compile"]),
+    #     max(values["bpf_check"]), max(values["bpf_int_jit_compile"]),
+    #     np.median(values["bpf_int_jit_compile"]), np.median(values["bpf_check"])
+    # ]
+    # ax.set_yticks(y_ticks)
+    # for i in range(1, 10):
+    #     curr_step += step
+    #     if curr_step - y_ticks < step: continue
+
+    # y_ticks = [min(values["bpf_check"]), min(values["bpf_int_jit_compile"]), max(values["bpf_check"]), max(values["bpf_int_jit_compile"])]
+    # ax.set_yticks(list(plt.yticks()[0]) + y_ticks + [np.median(values["bpf_int_jit_compile"]), np.median(values["bpf_check"])])
 
     plt.xlabel("Function name")
-    plt.ylabel("Execution time (µs)")
+    plt.ylabel("Execution time in µs")
     
     
     title = title.replace(' ', '_') + '.png'
@@ -119,7 +132,7 @@ def plot_durations(durations: list, label: str, title: str, filename: str):
 
     ax = sns.swarmplot(data=df, s=4)
     ax2 = sns.boxplot(data=df, boxprops={'facecolor':'None'}, width=0.3)
-    ax.set_yticks(y_ticks)
+    # ax.set_yticks(y_ticks)
     plt.title(title)
     plt.savefig(filename)
 
@@ -143,15 +156,14 @@ def plot_insmod_loadBPF(insmod_values: list, loadBPF_values: list):
     plt.xlabel("Loader")
     plt.ylabel("Total insertion time in ms")
 
-    plt.title("Loading time (ms): insmod vs eBPF loader")
+    # plt.title("Loading time (ms): insmod vs eBPF loader")
     plt.show()
     plt.savefig("out/insmod_vs_ebpf.png")
 
-def plot_module_vs_eBPF(mod_values:list, bpf_values: list, title: str):
+def plot_module_vs_eBPF(mod_values:list, bpf_values: list, bpf_values_nojit: list, title: str, fname:str):
 
-    mod_values = remove_outliers(np.array(mod_values))
-    bpf_values = remove_outliers(np.array(bpf_values))
     min_len = min(len(mod_values), len(bpf_values))
+    if bpf_values_nojit is not None: min_len = min(min_len, len(bpf_values_nojit))
     if min_len == 0:
         print("Can't generate figure for module vs eBPF")
         return
@@ -161,32 +173,23 @@ def plot_module_vs_eBPF(mod_values:list, bpf_values: list, title: str):
     plt.clf()
     sns.set_style("darkgrid")
     
+    
     mod_values = np.array(mod_values[:min_len])
     bpf_values = np.array(bpf_values[:min_len])
+    
     data_dict = {
         "Linux Module": mod_values,
-        "eBPF Program": bpf_values
+        "eBPF Program (JIT)": bpf_values,
     }
 
-    y_ticks = []
-    min_val = min(mod_values.min(), bpf_values.min())
-    max_val = max(mod_values.max(), bpf_values.max())
-    y_ticks.append(min_val)
-    y_ticks.append(max_val)
-    # y_ticks.append([x for x in np.quantile(mod_values, q=[0.25, 0.5, 0.75])])
-    # y_ticks.append([x for x in np.quantile(bpf_values, q=[0.25, 0.5, 0.75])])
+    if bpf_values_nojit is not None:
+        bpf_values_nojit = np.array(bpf_values_nojit[:min_len])
+        data_dict["eBPF Program (Interpreted)"] = bpf_values_nojit
 
-    delta = (max_val - min_val) // 10
-    
-    y_ticks.append(np.median(mod_values))
-    y_ticks.append(np.median(bpf_values))
-    
-    for i in range(10): 
-        y_ticks.append(min_val + (i * delta))
-        
     df = pd.DataFrame(data_dict)
     ax = sns.boxplot(data=df, width=0.3,boxprops={'facecolor':'None'},)
     ax2 = sns.swarmplot(data=df, s=4, zorder=.5)
+
     
     # Le min n'est peut être pas intéressant à afficher
     # Afficher le max permet, si la seule valeur extrême est celle à l'index 0
@@ -194,8 +197,12 @@ def plot_module_vs_eBPF(mod_values:list, bpf_values: list, title: str):
     plt.text(0.2, max(mod_values), ','.join([str(x) for i,x in enumerate(sorted(np.where(mod_values == max(mod_values))[0])) if i < 3]))
 
     plt.text(1.2, max(bpf_values), ','.join([str(x) for i,x in enumerate(sorted(np.where(bpf_values == max(bpf_values)))[0]) if i < 3]))
-    ax.set_yticks(y_ticks)  
-    plt.xlabel("Program")
+
+    if bpf_values_nojit is not None:
+        plt.text(2.2, max(bpf_values_nojit), ','.join([str(x) for i,x in enumerate(sorted(np.where(bpf_values_nojit == max(bpf_values_nojit)))[0]) if i < 3]))
+
+    # ax.set_yticks(y_ticks)  
+    # plt.xlabel("Program")
     plt.ylabel("Execution time in ns")
-    plt.title(title)
-    plt.savefig("out/module_vs_ebpf_overhead.png")
+    # plt.title(title)
+    plt.savefig("out/" + fname)

@@ -4,7 +4,7 @@
 
 
 #define SEC(NAME) __attribute__((section(NAME), used))
-
+#define MAP_ENTRIES 1000
 #include "core.c"
 
 
@@ -25,7 +25,7 @@ struct bpf_map_def SEC("maps") time_map = {
       .type        = BPF_MAP_TYPE_ARRAY,
       .key_size    = sizeof(__u32),
       .value_size  = sizeof(__u64),
-      .max_entries = 101,
+      .max_entries = MAP_ENTRIES + 1,
       .map_flags   = 0
 };
 
@@ -38,7 +38,7 @@ static __always_inline void update_time(void *map, __u64 *new_value)
 
     // Retrieve current items count
     count_keys = bpf_map_lookup_elem(map, &key);
-    if(count_keys && (*count_keys <= 100)){
+    if(count_keys && (*count_keys <= MAP_ENTRIES)){
 
 
         // Compute next key and insert it
@@ -56,12 +56,14 @@ static __always_inline void update_time(void *map, __u64 *new_value)
 SEC("kprobe/printk")
 int bpf_prog(void *ctx) {
     __u64 t0, delta;
-    int res;
+    int res, i;
+    __u32 nibble;
     t0 = bpf_ktime_get_ns();
 
+    // nibble = bpf_get_prandom_u32();
     // #pragma unroll
     // for(i = 0; i < 50; ++i)
-    //     res += i* nibble;
+    //     res *= nibble;
     bpf_ktime_get_ns();
     // bpf_ktime_get_ns();
     // bpf_ktime_get_ns();
