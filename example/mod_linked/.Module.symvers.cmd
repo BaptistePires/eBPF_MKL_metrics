@@ -1,0 +1,1 @@
+cmd_/share/platform/example/mod_linked/Module.symvers := sed 's/ko$$/o/' /share/platform/example/mod_linked/modules.order | scripts/mod/modpost     -o /share/platform/example/mod_linked/Module.symvers -e -i Module.symvers   -T -

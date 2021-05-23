@@ -1,12 +1,12 @@
 {
     "bpf":{
-        "dir": "example/bpf",
+        "dir": "example/bpf_linked",
         "bpf_filename": "wrapper.o"
     },
     "module":{
-        "dir": "example/mod",
-        "name": "helloWorld.ko",
+        "dir": "example/mod_linked",
+        "name": "count.ko",
         "kobj_name": "helloWorld"
     }, 
-    "tester": "../basic_hw/ins_module.sh"
+    "tester": "example/test_open.sh"
 }

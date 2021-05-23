@@ -37,32 +37,10 @@ int main(int argc, char **argv) {
       perror("bpf");
       return -1;
   }else{
-
-    // mkfifo(fifo_read_path, 0666);
-    // mkfifo(fifo_write_path, 0666);
-    // fifo_read_fd = open(fifo_read_path, O_RDWR);
-    // fifo_write_fd = open(fifo_write_path, O_RDWR);
-
-    // if(fifo_read_fd <= 0 || fifo_write_fd <= 0) {
-    //   printf("Error while opening pipes\n");
-    //   printf("-1\n");
-    //   return -1;
-    // }
-
-    // fprintf(fifo_write_fd, "%d\n", 1);
-    // fflush(fifo_write_fd);
-    
-    // dprintf(fifo_write_fd, "%d\n", 1);
     printf("1");
     fflush(stdout);
     retrieve_map_value();
-    
-    // fprintf(fifo_write_fd, "%d", 1);
-    // fclose(fifo_read_fd);
-    // fclose(fifo_write_fd);
   }
-            
-  // retrieve_map_value();
 
   return 0;
 }
@@ -70,8 +48,8 @@ int main(int argc, char **argv) {
 void retrieve_map_value(void)
 {
   __u64 *time_values;
-  __u64 value_count;
-  __u64 value;
+  __u64 value_count = 0;
+  __u64 value = 0;
   __u32 key = 0;
   
   pause();
@@ -91,13 +69,15 @@ void retrieve_map_value(void)
   }
 
   __u32 tmp_key = 1;
-  for(;tmp_key < (value_count - 1) ; ++tmp_key) {
+  for(;tmp_key < value_count; ++tmp_key) {
     if(bpf_map_lookup_elem(map_data[0].fd, &tmp_key, &value)) {
       perror("bpf_map_lookup_elem");
       printf("-1");
       fflush(stdout);
       goto end;
     }
+  printf("value v : %u\n", value);
+
     time_values[tmp_key - 1] = value;
   }
 

@@ -1,0 +1,1 @@
+cmd_/share/platform/example/mod_linked/count.ko := ld -r -m elf_x86_64 --build-id=sha1  -T scripts/module.lds -o /share/platform/example/mod_linked/count.ko /share/platform/example/mod_linked/count.o /share/platform/example/mod_linked/count.mod.o;  true
